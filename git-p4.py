@@ -840,6 +840,38 @@ def wildcard_present(path):
     m = re.search("[*#@%]", path)
     return m is not None
 
+def tounicode(data):
+    f = lambda d, enc: d.decode(enc)
+    codecs = ['utf-8','cp932','shift_jis','euc_jp',
+              'euc_jis_2004','euc_jisx0213','iso2022_jp','iso2022_jp_1',
+              'iso2022_jp_2','iso2022_jp_2004','iso2022_jp_3','iso2022_jp_ext',
+              'shift_jis_2004','shift_jisx0213','utf_16','utf_16_be',
+              'utf_16_le','utf_7','utf_8_sig']
+
+    for codec in codecs:
+        try:
+            return f(data, codec), codec
+        except:
+            # print "%s is not %s" % (data, codec)
+            continue
+    return None, None
+
+def toutf8(data):
+    data1, orig_codec = tounicode(data)
+    if data1 == None or orig_codec == 'utf-8':
+        return data
+    # print "encode %s with utf-8" % data
+    data2 = []
+    for char in data1[:]:
+        try:
+            data2.append(char.encode('utf-8'))
+        except:
+            print "except: %s" % data1
+            pass
+    result = ''.join(data2)
+    # print "result: %s" % result
+    return result
+
 class Command:
     def __init__(self):
         self.usage = "usage: %prog [options]"
@@ -2128,7 +2160,7 @@ class P4Sync(Command, P4UserMap):
             text = regexp.sub(r'$\1$', text)
             contents = [ text ]
 
-        self.gitStream.write("M %s inline %s\n" % (git_mode, relPath))
+        self.gitStream.write("M %s inline %s\n" % (git_mode, toutf8(relPath)))
 
         # total length...
         length = 0
@@ -2144,7 +2176,7 @@ class P4Sync(Command, P4UserMap):
         relPath = self.stripRepoPath(file['path'], self.branchPrefixes)
         if verbose:
             sys.stderr.write("delete %s\n" % relPath)
-        self.gitStream.write("D %s\n" % relPath)
+        self.gitStream.write("D %s\n" % toutf8(relPath))
 
     # handle another chunk of streaming data
     def streamP4FilesCb(self, marshalled):
@@ -2266,7 +2298,7 @@ class P4Sync(Command, P4UserMap):
             description = 'Label from git p4'
 
         gitStream.write("data %d\n" % len(description))
-        gitStream.write(description)
+        gitStream.write(toutf8(description))
         gitStream.write("\n")
 
     def commit(self, details, files, branch, parent = ""):
@@ -2296,10 +2328,10 @@ class P4Sync(Command, P4UserMap):
             self.getUserMapFromPerforceServer()
         committer = "%s %s %s" % (self.make_email(author), epoch, self.tz)
 
-        self.gitStream.write("committer %s\n" % committer)
+        self.gitStream.write("committer %s\n" % toutf8(committer))
 
         self.gitStream.write("data <<EOT\n")
-        self.gitStream.write(details["desc"])
+        self.gitStream.write(toutf8(details["desc"]))
         self.gitStream.write("\n[git-p4: depot-paths = \"%s\": change = %s" %
                              (','.join(self.branchPrefixes), details["change"]))
         if len(details['options']) > 0:
