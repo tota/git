@@ -842,6 +842,9 @@ def wildcard_present(path):
 
 def tounicode(data):
     f = lambda d, enc: d.decode(enc)
+
+    # http://www.perforce.com/perforce/doc.current/user/i18nnotes.txt
+    # http://docs.python.org/2.7/library/codecs.html#standard-encodings
     p4char2encode = {
         "shiftjis"          : "cp932",
         "eucjp"             : "euc_jp",
