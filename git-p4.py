@@ -842,13 +842,48 @@ def wildcard_present(path):
 
 def tounicode(data):
     f = lambda d, enc: d.decode(enc)
-    codecs = ['utf-8','cp932','shift_jis','euc_jp',
-              'euc_jis_2004','euc_jisx0213','iso2022_jp','iso2022_jp_1',
-              'iso2022_jp_2','iso2022_jp_2004','iso2022_jp_3','iso2022_jp_ext',
-              'shift_jis_2004','shift_jisx0213','utf_16','utf_16_be',
-              'utf_16_le','utf_7','utf_8_sig']
+    p4char2encode = {
+        "shiftjis"          : "cp932",
+        "eucjp"             : "euc_jp",
+        "cp936"             : "gbk",
+        "cp950"             : "cp950",
+        "cp949"             : "cp949",
+        "winansi"           : "cp1252",
+        "cp850"             : "cp850",
+        "cp858"             : "cp858",
+        "winoem"            : "cp437",
+        "iso8859-1"         : "latin_1",
+        "iso8859-15"        : "iso8859_15",
+        "macosroman"        : "mac_roman",
+        "utf8"              : "utf_8",
+        "utf8-bom"          : "utf_8_sig",
+        "utf8unchecked"     : "utf_8",
+        "utf8unchecked-bom" : "utf_8_sig",
+        "iso8859-5"         : "iso8859_5",
+        "koi-r"             : "koi8_r",
+        "cp1251"            : "cp1251",
+        "utf16"             : "utf16",
+        "utf16le"           : "utf_16_le",
+        "utf16be"           : "utf_16_be",
+        "utf16-nobom"       : "utf16",
+        "utf16le-nobom"     : "utf_16_le",
+        "utf16be-nobom"     : "utf_16_be",
+        "utf32"             : "utf_32",
+        "utf32le"           : "utf_32_le",
+        "utf32be"           : "utf_32_be",
+        "utf32-nobom"       : "utf_32",
+        "utf32le-nobom"     : "utf_32_le",
+        "utf32be-nobom"     : "utf_32_be",
+    }
+    p4charset = os.environ.get("P4CHARSET", "utf8")
+    encode = p4char2encode.get(p4charset, 'utf_8')
+    codecs = ['utf_8', encode, 'cp932', 'shift_jis', 'euc_jp',
+              'euc_jis_2004', 'euc_jisx0213', 'iso2022_jp', 'iso2022_jp_1',
+              'iso2022_jp_2', 'iso2022_jp_2004', 'iso2022_jp_3', 'iso2022_jp_ext',
+              'shift_jis_2004', 'shift_jisx0213', 'utf_16', 'utf_16_be',
+              'utf_16_le', 'utf_7', 'utf_8_sig']
 
-    for codec in codecs:
+    for codec in sorted(set(codecs), key=codecs.index):
         try:
             return f(data, codec), codec
         except:
@@ -857,20 +892,10 @@ def tounicode(data):
     return None, None
 
 def toutf8(data):
-    data1, orig_codec = tounicode(data)
-    if data1 == None or orig_codec == 'utf-8':
+    data, codec = tounicode(data)
+    if data == None or codec == 'utf-8':
         return data
-    # print "encode %s with utf-8" % data
-    data2 = []
-    for char in data1[:]:
-        try:
-            data2.append(char.encode('utf-8'))
-        except:
-            print "except: %s" % data1
-            pass
-    result = ''.join(data2)
-    # print "result: %s" % result
-    return result
+    return data.encode('utf-8', 'ignore')
 
 class Command:
     def __init__(self):
