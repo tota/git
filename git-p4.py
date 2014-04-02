@@ -14,6 +14,7 @@ if sys.hexversion < 0x02040000:
     sys.exit(1)
 import os
 import optparse
+import locale
 import marshal
 import subprocess
 import tempfile
@@ -840,12 +841,10 @@ def wildcard_present(path):
     m = re.search("[*#@%]", path)
     return m is not None
 
-def tounicode(data):
-    f = lambda d, enc: d.decode(enc)
-
+def p4char2encode(p4charset):
     # http://www.perforce.com/perforce/doc.current/user/i18nnotes.txt
     # http://docs.python.org/2.7/library/codecs.html#standard-encodings
-    p4char2encode = {
+    p4char2encode_table = {
         "shiftjis"          : "cp932",
         "eucjp"             : "euc_jp",
         "cp936"             : "gbk",
@@ -878,8 +877,16 @@ def tounicode(data):
         "utf32le-nobom"     : "utf_32_le",
         "utf32be-nobom"     : "utf_32_be",
     }
-    p4charset = os.environ.get("P4CHARSET", "utf8")
-    encode = p4char2encode.get(p4charset, 'utf_8')
+    if p4charset in p4char2encode_table:
+        return p4char2encode_table[p4charset]
+    else:
+        return locale.getpreferredencoding()
+
+def tounicode(data):
+    f = lambda d, enc: d.decode(enc)
+
+    p4charset = os.environ.get("P4CHARSET", None)
+    encode = p4char2encode(p4charset)
     codecs = ['utf_8', encode, 'cp932', 'shift_jis', 'euc_jp',
               'euc_jis_2004', 'euc_jisx0213', 'iso2022_jp', 'iso2022_jp_1',
               'iso2022_jp_2', 'iso2022_jp_2004', 'iso2022_jp_3', 'iso2022_jp_ext',
@@ -890,7 +897,7 @@ def tounicode(data):
         try:
             return f(data, codec), codec
         except:
-            # print "%s is not %s" % (data, codec)
+            # print "data(%s) is not codec(%s)" % (data, codec)
             continue
     return None, None
 
@@ -899,6 +906,14 @@ def toutf8(data):
     if data == None or codec == 'utf-8':
         return data
     return data.encode('utf-8', 'ignore')
+
+def top4charset(data):
+    data, codec = tounicode(data)
+    p4charset = os.environ.get("P4CHARSET", None)
+    encode = p4char2encode(p4charset)
+    if data == None or codec == encode:
+        return data
+    return data.encode(encode, 'ignore')
 
 class Command:
     def __init__(self):
@@ -1465,7 +1480,7 @@ class P4Submit(Command, P4UserMap):
         # of the git commit message.
         #
         logMessage = extractLogMessageFromGitCommit(id)
-        logMessage = logMessage.strip()
+        logMessage = top4charset(logMessage.strip())
         (logMessage, jobs) = self.separate_jobs_from_description(logMessage)
 
         template = self.prepareSubmitTemplate()
