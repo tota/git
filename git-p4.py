@@ -902,18 +902,18 @@ def tounicode(data):
     return None, None
 
 def toutf8(data):
-    data, codec = tounicode(data)
-    if data == None or codec == 'utf_8':
+    decoded, codec = tounicode(data)
+    if decoded == None or codec == 'utf_8':
         return data
-    return data.encode('utf_8', 'ignore')
+    return decoded.encode('utf_8', 'ignore')
 
 def top4charset(data):
-    data, codec = tounicode(data)
+    decoded, codec = tounicode(data)
     p4charset = os.environ.get("P4CHARSET", None)
     encode = p4char2encode(p4charset)
-    if data == None or codec == encode:
+    if decoded == None or codec == encode:
         return data
-    return data.encode(encode, 'ignore')
+    return decoded.encode(encode, 'ignore')
 
 class Command:
     def __init__(self):
