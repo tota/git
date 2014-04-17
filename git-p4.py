@@ -897,7 +897,8 @@ def tounicode(data):
         try:
             return f(data, codec), codec
         except:
-            # print "data(%s) is not codec(%s)" % (data, codec)
+            if verbose:
+                sys.stderr.write("data(%s) is not codec(%s)\n" % (data, codec))
             continue
     return None, None
 
