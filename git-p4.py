@@ -864,10 +864,10 @@ def p4char2encode(p4charset):
         "iso8859-5"         : "iso8859_5",
         "koi-r"             : "koi8_r",
         "cp1251"            : "cp1251",
-        "utf16"             : "utf16",
+        "utf16"             : "utf_16",
         "utf16le"           : "utf_16_le",
         "utf16be"           : "utf_16_be",
-        "utf16-nobom"       : "utf16",
+        "utf16-nobom"       : "utf_16",
         "utf16le-nobom"     : "utf_16_le",
         "utf16be-nobom"     : "utf_16_be",
         "utf32"             : "utf_32",
@@ -903,9 +903,9 @@ def tounicode(data):
 
 def toutf8(data):
     data, codec = tounicode(data)
-    if data == None or codec == 'utf-8':
+    if data == None or codec == 'utf_8':
         return data
-    return data.encode('utf-8', 'ignore')
+    return data.encode('utf_8', 'ignore')
 
 def top4charset(data):
     data, codec = tounicode(data)
