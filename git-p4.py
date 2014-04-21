@@ -2231,6 +2231,11 @@ class P4Sync(Command, P4UserMap):
             if marshalled["code"] == "error":
                 if "data" in marshalled:
                     err = marshalled["data"].rstrip()
+                    if err and self.stream_have_file_info and "type" in self.stream_file:
+                        type_base = split_p4_type(self.stream_file["type"])[0]
+                        if type_base == "utf16":
+                            err = None
+
         if err:
             f = None
             if self.stream_have_file_info:
