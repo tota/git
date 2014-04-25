@@ -2173,20 +2173,13 @@ class P4Sync(Command, P4UserMap):
             # But ascii text saved as -t utf16 is completely mangled.
             # Invoke print -o outputfile to get the real contents.
             #
-            # On windows, the newlines will always be mangled by print, so put
-            # them back too.  This is not needed to the cygwin windows version,
-            # just the native "NT" type.
-            #
             with tempfile.NamedTemporaryFile(prefix='p4-utf16-') as f:
                 outputfile = f.name
 
             p4_read_pipe(['print', '-q', '-o', outputfile, "%s#%s" % (file['depotFile'], file['rev'])])
 
             with open(outputfile, 'rb') as f:
-                text = f.read()
-                if p4_version_string().find("/NT") >= 0:
-                    text = text.replace("\r\n", "\n")
-                contents = [ text ]
+                contents = [f.read()]
             os.chmod(outputfile , stat.S_IWRITE)
             os.unlink(outputfile)
 
