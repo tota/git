@@ -2171,16 +2171,24 @@ class P4Sync(Command, P4UserMap):
             # than it does when using "print -o", or normal p4 client
             # operations.  utf16 is converted to ascii or utf8, perhaps.
             # But ascii text saved as -t utf16 is completely mangled.
-            # Invoke print -o to get the real contents.
+            # Invoke print -o outputfile to get the real contents.
             #
             # On windows, the newlines will always be mangled by print, so put
             # them back too.  This is not needed to the cygwin windows version,
             # just the native "NT" type.
             #
-            text = p4_read_pipe(['print', '-q', '-o', '-', file['depotFile']])
-            if p4_version_string().find("/NT") >= 0:
-                text = text.replace("\r\n", "\n")
-            contents = [ text ]
+            with tempfile.NamedTemporaryFile(prefix='p4-utf16-') as f:
+                outputfile = f.name
+
+            p4_read_pipe(['print', '-q', '-o', outputfile, "%s#%s" % (file['depotFile'], file['rev'])])
+
+            with open(outputfile, 'rb') as f:
+                text = f.read()
+                if p4_version_string().find("/NT") >= 0:
+                    text = text.replace("\r\n", "\n")
+                contents = [ text ]
+            os.chmod(outputfile , stat.S_IWRITE)
+            os.unlink(outputfile)
 
         if type_base == "apple":
             # Apple filetype files will be streamed as a concatenation of
