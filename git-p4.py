@@ -2273,7 +2273,6 @@ class P4Sync(Command, P4UserMap):
 
     # Stream directly from "p4 files" into "git fast-import"
     def streamP4Files(self, files):
-        filesForCommit = []
         filesToRead = []
         filesToDelete = []
 
@@ -2284,7 +2283,6 @@ class P4Sync(Command, P4UserMap):
                 if self.clientSpecDirs.map_in_client(f['path']) == "":
                     continue
 
-            filesForCommit.append(f)
             if f['action'] in self.delete_actions:
                 filesToDelete.append(f)
             else:
