@@ -1320,19 +1320,26 @@ class P4Submit(Command, P4UserMap):
             del(os.environ["P4DIFF"])
         diff = ""
         for editedFile in editedFiles:
-            diff += p4_read_pipe(['diff', '-du',
-                                  wildcard_encode(editedFile)])
+            p4Type = getP4OpenedType(editedFile)
+            if p4Type != "binary":
+                diff += p4_read_pipe(['diff', '-du',
+                                      wildcard_encode(editedFile)])
 
         # new file diff
         newdiff = ""
         for newFile in filesToAdd:
-            newdiff += "==== new file ====\n"
-            newdiff += "--- /dev/null\n"
-            newdiff += "+++ %s\n" % newFile
-            f = open(newFile, "r")
-            for line in f.readlines():
-                newdiff += "+" + line
-            f.close()
+            p4Type = getP4OpenedType(newFile)
+            if p4Type != "binary":
+                try:
+                    with open(newFile, "r") as f:
+                        newdiff += "==== new file ====\n"
+                        newdiff += "--- /dev/null\n"
+                        newdiff += "+++ %s\n" % newFile
+                        for line in f.readlines():
+                            newdiff += "+" + line
+                except IOError, (errno, msg):
+                    sys.stderr.write("except: Cannot open %s\n" % newFile)
+                    sys.stderr.write("  errno: [%d], msg: [%s]\n" % (errno, msg))
 
         return (diff + newdiff).replace('\r\n', '\n')
 
