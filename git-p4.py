@@ -151,7 +151,13 @@ def read_pipe_lines(c):
     expand = isinstance(c, basestring)
     p = subprocess.Popen(c, stdout=subprocess.PIPE, shell=expand)
     pipe = p.stdout
-    val = pipe.readlines()
+    val = []
+    while True:
+        line = pipe.readline()
+        if line != '':
+            val.append(top4charset(line.decode('utf_8')))
+        else:
+            break
     if pipe.close() or p.wait():
         die('Command failed: %s' % str(c))
 
