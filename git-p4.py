@@ -1321,7 +1321,7 @@ class P4Submit(Command, P4UserMap):
         diff = ""
         for editedFile in editedFiles:
             p4Type = getP4OpenedType(editedFile)
-            if p4Type != "binary":
+            if p4Type not in ("binary", "utf16"):
                 diff += p4_read_pipe(['diff', '-du',
                                       wildcard_encode(editedFile)])
 
@@ -1329,7 +1329,7 @@ class P4Submit(Command, P4UserMap):
         newdiff = ""
         for newFile in filesToAdd:
             p4Type = getP4OpenedType(newFile)
-            if p4Type != "binary":
+            if p4Type not in ("binary", "utf16"):
                 try:
                     with open(newFile, "r") as f:
                         newdiff += "==== new file ====\n"
