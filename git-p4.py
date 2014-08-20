@@ -231,9 +231,9 @@ def p4_sync(f, *options):
 def p4_add(f):
     # forcibly add file names with wildcards
     if wildcard_present(f):
-        p4_system(["add", "-f", f])
+        p4_system(["add", "-f", top4charset(f)])
     else:
-        p4_system(["add", f])
+        p4_system(["add", top4charset(f)])
 
 def p4_delete(f):
     p4_system(["delete", wildcard_encode(f)])
@@ -835,7 +835,7 @@ def wildcard_encode(path):
                .replace("*", "%2A") \
                .replace("#", "%23") \
                .replace("@", "%40")
-    return path
+    return top4charset(path)
 
 def wildcard_present(path):
     m = re.search("[*#@%]", path)
@@ -1326,6 +1326,7 @@ class P4Submit(Command, P4UserMap):
         # new file diff
         newdiff = ""
         for newFile in filesToAdd:
+            newFile = top4charset(newFile)
             newdiff += "==== new file ====\n"
             newdiff += "--- /dev/null\n"
             newdiff += "+++ %s\n" % newFile
